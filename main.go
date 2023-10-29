@@ -2,14 +2,12 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net"
-	"os"
 )
 
 func main() {
-	listener, err := net.Listen("tcp", ":6379")
+	listener, err := net.Listen("tcp", ":6379") // server setup
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,21 +20,17 @@ func main() {
 
 	defer conn.Close()
 
-	for {
-		buf := make([]byte, 1024)
+	for { // server loop
+		resp := NewResp(conn)
 
-		_, err := conn.Read(buf)
+		value, err := resp.Read()
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			log.Println("Error reading from client: ", err.Error())
-			os.Exit(1)
-		}
-		_, err = conn.Write([]byte("+OK\r\n"))
-		if err != nil {
-			log.Println(err)
+			fmt.Println(err)
+			return
 		}
 
+		fmt.Println(value)
+
+		conn.Write([]byte("+OK\r\n"))
 	}
 }
