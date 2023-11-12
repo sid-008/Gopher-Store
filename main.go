@@ -21,7 +21,7 @@ func main() {
 	defer conn.Close()
 
 	for { // server loop
-		resp := NewResp(conn)
+		resp := NewResp(conn) // read from conn
 
 		value, err := resp.Read()
 		if err != nil {
@@ -31,6 +31,7 @@ func main() {
 
 		fmt.Println(value)
 
-		conn.Write([]byte("+OK\r\n"))
+		writer := NewWriter(conn)
+		writer.Write(Value{typ: "string", str: "OK"})
 	}
 }
