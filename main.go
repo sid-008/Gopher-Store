@@ -21,6 +21,12 @@ func main() {
 
 	defer conn.Close()
 
+	aof, err := NewAOF("./database.aof")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
 	for {
 		resp := NewResp(conn)
 		value, err := resp.Read()
@@ -39,7 +45,7 @@ func main() {
 			continue
 		}
 
-		command := strings.ToUpper(value.array[0].bulk)
+		command := strings.ToUpper(value.array[0].bulk) //redis commands
 		args := value.array[1:]
 
 		writer := NewWriter(conn)
@@ -49,6 +55,10 @@ func main() {
 			fmt.Println("Invalid command: ", command)
 			writer.Write(Value{typ: "string", str: ""})
 			continue
+		}
+
+		if command == "SET" {
+			aof.Write(value)
 		}
 
 		result := handler(args)

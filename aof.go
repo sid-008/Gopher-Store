@@ -46,3 +46,15 @@ func (aof *AOF) Close() error {
 
 	return aof.file.Close()
 }
+
+func (aof *AOF) Write(value Value) error {
+	aof.mu.Lock()
+	defer aof.mu.Unlock()
+
+	_, err := aof.file.Write(value.Marshal())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
