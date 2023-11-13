@@ -5,5 +5,5 @@ Supports simple GET and SET operations for now.
 
 TODO:
 
-- Use AOF persistence
-- Implement suppot for more commands
+- Read aof in main
+- Implement suppot for more commands: such as HSET etc
