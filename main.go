@@ -14,18 +14,32 @@ func main() {
 	}
 	fmt.Println("[Server] Listening on Port: 6379")
 
+	aof, err := NewAOF("./database.aof")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer aof.Close()
+
+	aof.Read(func(value Value) {
+		command := strings.ToUpper(value.array[0].bulk)
+		args := value.array[1:]
+
+		handler, ok := Handlers[command]
+		if !ok {
+			fmt.Println("Invalid command: ", command)
+			return
+		}
+
+		handler(args)
+	})
+
 	conn, err := listener.Accept()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer conn.Close()
-
-	aof, err := NewAOF("./database.aof")
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
 
 	for {
 		resp := NewResp(conn)
@@ -45,7 +59,7 @@ func main() {
 			continue
 		}
 
-		command := strings.ToUpper(value.array[0].bulk) //redis commands
+		command := strings.ToUpper(value.array[0].bulk) // redis commands
 		args := value.array[1:]
 
 		writer := NewWriter(conn)
